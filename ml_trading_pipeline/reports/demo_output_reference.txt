@@ -1,0 +1,250 @@
+
+##########################################################################################
+# 1/3  DATA
+##########################################################################################
+[data] cached to data/raw/synthetic_d2da4aa1c1f1.pkl
+[data] source=synthetic tickers=8 days=1500 range=2019-01-01..2024-09-30
+             first        last  rows  last_close  ann_vol  total_return
+ticker                                                                 
+SYN00   2019-01-01  2024-09-30  1500       44.71    0.308        -0.113
+SYN01   2019-01-01  2024-09-30  1500        8.92    0.381        -0.861
+SYN02   2019-01-01  2024-09-30  1500       94.65    0.247         0.264
+SYN03   2019-01-01  2024-09-30  1500       49.68    0.263        -0.430
+SYN04   2019-01-01  2024-09-30  1500       59.48    0.286        -0.395
+SYN05   2019-01-01  2024-09-30  1500      161.34    0.260         0.446
+SYN06   2019-01-01  2024-09-30  1500       26.16    0.304        -0.788
+SYN07   2019-01-01  2024-09-30  1500       92.38    0.287        -0.332
+
+##########################################################################################
+# 2/3  WALK-FORWARD TRAINING + BACKTEST
+##########################################################################################
+[models] skipping 'lightgbm': library 'lightgbm' not installed
+
+[train] session=demo-20261030-150853 lines=['A', 'B'] models=['always_long', 'momentum_rule', 'logistic', 'random_forest', 'hist_gb']
+[tracking] mlflow not installed -> using local run store 'runs/' (pip install mlflow for the MLflow UI)
+[tracking] backend=local experiment=trading-lineA
+[train] Line A: X=(11496, 21), labelled rows=11456, label balance=0.483
+  [A|SYN00|always_long  ] acc=0.540 total_return=+0.234  cagr=+0.111  sharpe=+0.491  max_drawdown=-0.347  hit_rate=+0.514  avg_daily_turnover=+0.002  avg_exposure=+0.998  (0.3s)
+  [A|SYN00|momentum_rule] acc=0.500 total_return=+0.304  cagr=+0.141  sharpe=+0.660  max_drawdown=-0.243  hit_rate=+0.483  avg_daily_turnover=+0.099  avg_exposure=+0.582  (0.3s)
+  [A|SYN00|logistic     ] acc=0.494 total_return=-0.359  cagr=-0.199  sharpe=-1.003  max_drawdown=-0.362  hit_rate=+0.434  avg_daily_turnover=+0.065  avg_exposure=+0.451  (0.4s)
+  [A|SYN00|random_forest] acc=0.464 total_return=-0.240  cagr=-0.128  sharpe=-0.488  max_drawdown=-0.318  hit_rate=+0.463  avg_daily_turnover=+0.042  avg_exposure=+0.604  (2.9s)
+  [A|SYN00|hist_gb      ] acc=0.454 total_return=-0.180  cagr=-0.094  sharpe=-0.348  max_drawdown=-0.274  hit_rate=+0.449  avg_daily_turnover=+0.109  avg_exposure=+0.572  (1.1s)
+  [A|SYN01|always_long  ] acc=0.482 total_return=-0.063  cagr=-0.032  sharpe=+0.111  max_drawdown=-0.342  hit_rate=+0.486  avg_daily_turnover=+0.002  avg_exposure=+0.998  (0.3s)
+  [A|SYN01|momentum_rule] acc=0.492 total_return=+0.029  cagr=+0.014  sharpe=+0.183  max_drawdown=-0.219  hit_rate=+0.455  avg_daily_turnover=+0.079  avg_exposure=+0.426  (0.5s)
+  [A|SYN01|logistic     ] acc=0.494 total_return=-0.151  cagr=-0.079  sharpe=-0.269  max_drawdown=-0.224  hit_rate=+0.437  avg_daily_turnover=+0.067  avg_exposure=+0.311  (0.5s)
+  [A|SYN01|random_forest] acc=0.510 total_return=+0.113  cagr=+0.055  sharpe=+0.371  max_drawdown=-0.202  hit_rate=+0.452  avg_daily_turnover=+0.040  avg_exposure=+0.208  (3.1s)
+  [A|SYN01|hist_gb      ] acc=0.562 total_return=+0.343  cagr=+0.159  sharpe=+0.849  max_drawdown=-0.150  hit_rate=+0.424  avg_daily_turnover=+0.127  avg_exposure=+0.277  (1.2s)
+[tracking] mlflow not installed -> using local run store 'runs/' (pip install mlflow for the MLflow UI)
+[tracking] backend=local experiment=trading-lineB
+[train] Line B: X=(11496, 40), labelled rows=11456, label balance=0.500
+  [B|universe|always_long  ] acc=0.500 total_return=+0.298  cagr=+0.139  sharpe=+0.635  max_drawdown=-0.261  hit_rate=+0.492  avg_daily_turnover=+0.002  avg_exposure=+0.998  (0.5s)
+  [B|universe|momentum_rule] acc=0.508 total_return=+0.142  cagr=+0.068  sharpe=+0.390  max_drawdown=-0.310  hit_rate=+0.476  avg_daily_turnover=+0.098  avg_exposure=+0.998  (1.1s)
+  [B|universe|logistic     ] acc=0.522 total_return=+0.612  cagr=+0.269  sharpe=+1.138  max_drawdown=-0.255  hit_rate=+0.524  avg_daily_turnover=+0.228  avg_exposure=+0.998  (1.5s)
+  [B|universe|random_forest] acc=0.525 total_return=+0.557  cagr=+0.247  sharpe=+1.068  max_drawdown=-0.276  hit_rate=+0.522  avg_daily_turnover=+0.204  avg_exposure=+0.998  (9.6s)
+  [B|universe|hist_gb      ] acc=0.514 total_return=+0.499  cagr=+0.224  sharpe=+0.959  max_drawdown=-0.250  hit_rate=+0.508  avg_daily_turnover=+0.209  avg_exposure=+0.998  (3.8s)
+
+[train] SUMMARY (out-of-sample, after costs)
+line   target         model  accuracy   auc     ic  total_return  sharpe  max_dd  bench_return  bench_sharpe
+   A    SYN00   always_long     0.540 0.500  0.000         0.234   0.491  -0.347         0.234         0.491
+   A    SYN00 momentum_rule     0.500 0.493  0.041         0.304   0.660  -0.243         0.234         0.491
+   A    SYN00      logistic     0.494 0.472 -0.089        -0.359  -1.003  -0.362         0.234         0.491
+   A    SYN00 random_forest     0.464 0.449 -0.110        -0.240  -0.488  -0.318         0.234         0.491
+   A    SYN00       hist_gb     0.454 0.446 -0.148        -0.180  -0.348  -0.274         0.234         0.491
+   A    SYN01   always_long     0.482 0.500  0.000        -0.063   0.111  -0.342        -0.063         0.111
+   A    SYN01 momentum_rule     0.492 0.489 -0.012         0.029   0.183  -0.219        -0.063         0.111
+   A    SYN01      logistic     0.494 0.469 -0.077        -0.151  -0.269  -0.224        -0.063         0.111
+   A    SYN01 random_forest     0.510 0.535  0.077         0.113   0.371  -0.202        -0.063         0.111
+   A    SYN01       hist_gb     0.562 0.550  0.100         0.343   0.849  -0.150        -0.063         0.111
+   B universe   always_long     0.500 0.500  0.000         0.298   0.635  -0.261         0.212         0.562
+   B universe momentum_rule     0.508 0.508  0.054         0.142   0.390  -0.310         0.212         0.562
+   B universe      logistic     0.522 0.531  0.061         0.612   1.138  -0.255         0.212         0.562
+   B universe random_forest     0.525 0.525  0.073         0.557   1.068  -0.276         0.212         0.562
+   B universe       hist_gb     0.514 0.517  0.052         0.499   0.959  -0.250         0.212         0.562
+[train] saved outputs/training_summary_demo-20261030-150853.csv
+
+##########################################################################################
+# 3/3  DONE
+##########################################################################################
+session id: demo-20261030-150853
+champions (best ML model by backtest Sharpe per target) are tagged stage=champion in the tracker
+next: python scripts/paper_trade_daily.py --simulate   (replay the hold-out period)
+[data] loaded from cache data/raw/synthetic_d2da4aa1c1f1
+[paper] session demo-20261030-150853: 18 strategies (15 models + benchmarks)
+[tracking] mlflow not installed -> using local run store 'runs/' (pip install mlflow for the MLflow UI)
+[tracking] backend=local experiment=trading-paper
+[paper] SIMULATION: replaying hold-out 2024-07-09..2024-09-30 (60 days)
+
+##########################################################################################
+# PAPER TRADING  session=demo-20261030-150853
+##########################################################################################
+[paper] 2024-07-09  best so far: A|SYN00|always_long          +0.00%  orders: {'HOLD': 7, 'BUY': 6, 'REBALANCE': 5}
+[paper] 2024-07-10  best so far: A|SYN01|hist_gb              +1.90%  orders: {'HOLD': 15, 'BUY': 3}
+[paper] 2024-07-11  best so far: A|SYN01|hist_gb              +0.74%  orders: {'HOLD': 18}
+[paper] 2024-07-12  best so far: A|SYN01|hist_gb              +3.81%  orders: {'HOLD': 16, 'SELL': 1, 'BUY': 1}
+[paper] 2024-07-15  best so far: A|SYN01|buy_and_hold         +3.93%  orders: {'HOLD': 17, 'SELL': 1}
+[paper] 2024-07-16  best so far: A|SYN01|hist_gb              +3.65%  orders: {'HOLD': 13, 'REBALANCE': 5}
+[paper] 2024-07-17  best so far: A|SYN01|hist_gb              +3.65%  orders: {'HOLD': 18}
+[paper] 2024-07-18  best so far: A|SYN01|buy_and_hold         +5.62%  orders: {'HOLD': 18}
+[paper] 2024-07-19  best so far: A|SYN01|buy_and_hold         +8.31%  orders: {'HOLD': 18}
+[paper] 2024-07-22  best so far: A|SYN01|buy_and_hold         +6.85%  orders: {'HOLD': 17, 'SELL': 1}
+[paper] 2024-07-23  best so far: A|SYN01|buy_and_hold         +4.02%  orders: {'HOLD': 13, 'REBALANCE': 5}
+[paper] 2024-07-24  best so far: A|SYN01|hist_gb              +3.65%  orders: {'HOLD': 18}
+[paper] 2024-07-25  best so far: A|SYN01|hist_gb              +3.65%  orders: {'HOLD': 16, 'SELL': 1, 'BUY': 1}
+[paper] 2024-07-26  best so far: B|universe|random_forest     +3.07%  orders: {'HOLD': 18}
+[paper] 2024-07-29  best so far: A|SYN00|always_long          +1.13%  orders: {'HOLD': 17, 'BUY': 1}
+[paper] 2024-07-30  best so far: B|universe|hist_gb           +3.36%  orders: {'HOLD': 13, 'REBALANCE': 5}
+[paper] 2024-07-31  best so far: B|universe|hist_gb           +4.90%  orders: {'HOLD': 18}
+[paper] 2024-08-01  best so far: A|SYN00|always_long          +8.42%  orders: {'HOLD': 17, 'BUY': 1}
+[paper] 2024-08-02  best so far: A|SYN00|always_long          +12.46%  orders: {'HOLD': 15, 'SELL': 3}
+[paper] 2024-08-05  best so far: A|SYN00|always_long          +12.89%  orders: {'HOLD': 18}
+[paper] 2024-08-06  best so far: A|SYN00|hist_gb              +12.04%  orders: {'HOLD': 12, 'REBALANCE': 5, 'BUY': 1}
+[paper] 2024-08-07  best so far: A|SYN00|hist_gb              +12.04%  orders: {'HOLD': 18}
+[paper] 2024-08-08  best so far: A|SYN00|hist_gb              +12.04%  orders: {'HOLD': 17, 'BUY': 1}
+[paper] 2024-08-09  best so far: A|SYN00|hist_gb              +12.01%  orders: {'HOLD': 17, 'SELL': 1}
+[paper] 2024-08-12  best so far: A|SYN00|hist_gb              +11.53%  orders: {'HOLD': 17, 'SELL': 1}
+[paper] 2024-08-13  best so far: A|SYN00|hist_gb              +11.62%  orders: {'HOLD': 13, 'REBALANCE': 5}
+[paper] 2024-08-14  best so far: A|SYN00|hist_gb              +11.62%  orders: {'HOLD': 18}
+[paper] 2024-08-15  best so far: A|SYN00|hist_gb              +11.62%  orders: {'HOLD': 16, 'BUY': 2}
+[paper] 2024-08-16  best so far: A|SYN00|hist_gb              +11.62%  orders: {'HOLD': 16, 'BUY': 1, 'SELL': 1}
+[paper] 2024-08-19  best so far: A|SYN00|hist_gb              +11.62%  orders: {'HOLD': 15, 'SELL': 2, 'BUY': 1}
+[paper] 2024-08-20  best so far: A|SYN00|hist_gb              +11.96%  orders: {'HOLD': 13, 'REBALANCE': 5}
+[paper] 2024-08-21  best so far: A|SYN00|hist_gb              +11.70%  orders: {'HOLD': 18}
+[paper] 2024-08-22  best so far: A|SYN00|hist_gb              +15.86%  orders: {'HOLD': 16, 'SELL': 1, 'BUY': 1}
+[paper] 2024-08-23  best so far: A|SYN00|hist_gb              +15.47%  orders: {'HOLD': 16, 'BUY': 2}
+[paper] 2024-08-26  best so far: A|SYN00|hist_gb              +16.13%  orders: {'HOLD': 18}
+[paper] 2024-08-27  best so far: A|SYN00|hist_gb              +16.89%  orders: {'HOLD': 13, 'REBALANCE': 5}
+[paper] 2024-08-28  best so far: A|SYN00|hist_gb              +11.58%  orders: {'HOLD': 18}
+[paper] 2024-08-29  best so far: A|SYN00|random_forest        +10.48%  orders: {'HOLD': 16, 'SELL': 2}
+[paper] 2024-08-30  best so far: A|SYN00|hist_gb              +12.44%  orders: {'HOLD': 18}
+[paper] 2024-09-02  best so far: A|SYN00|random_forest        +10.48%  orders: {'HOLD': 18}
+[paper] 2024-09-03  best so far: A|SYN00|random_forest        +10.48%  orders: {'HOLD': 13, 'REBALANCE': 5}
+[paper] 2024-09-04  best so far: A|SYN00|random_forest        +10.48%  orders: {'HOLD': 18}
+[paper] 2024-09-05  best so far: B|universe|hist_gb           +11.72%  orders: {'HOLD': 18}
+[paper] 2024-09-06  best so far: B|universe|hist_gb           +12.59%  orders: {'HOLD': 17, 'SELL': 1}
+[paper] 2024-09-09  best so far: B|universe|hist_gb           +12.06%  orders: {'HOLD': 16, 'SELL': 1, 'BUY': 1}
+[paper] 2024-09-10  best so far: B|universe|hist_gb           +11.92%  orders: {'HOLD': 13, 'REBALANCE': 5}
+[paper] 2024-09-11  best so far: B|universe|hist_gb           +12.49%  orders: {'HOLD': 17, 'SELL': 1}
+[paper] 2024-09-12  best so far: B|universe|hist_gb           +14.76%  orders: {'HOLD': 18}
+[paper] 2024-09-13  best so far: B|universe|hist_gb           +14.34%  orders: {'HOLD': 16, 'BUY': 2}
+[paper] 2024-09-16  best so far: B|universe|hist_gb           +13.13%  orders: {'HOLD': 18}
+[paper] 2024-09-17  best so far: B|universe|hist_gb           +14.14%  orders: {'HOLD': 13, 'REBALANCE': 5}
+[paper] 2024-09-18  best so far: B|universe|hist_gb           +12.10%  orders: {'HOLD': 17, 'BUY': 1}
+[paper] 2024-09-19  best so far: B|universe|hist_gb           +13.21%  orders: {'HOLD': 18}
+[paper] 2024-09-20  best so far: B|universe|hist_gb           +12.36%  orders: {'HOLD': 17, 'BUY': 1}
+[paper] 2024-09-23  best so far: B|universe|hist_gb           +10.63%  orders: {'HOLD': 17, 'SELL': 1}
+[paper] 2024-09-24  best so far: A|SYN00|random_forest        +10.48%  orders: {'HOLD': 13, 'REBALANCE': 5}
+[paper] 2024-09-25  best so far: A|SYN00|random_forest        +10.48%  orders: {'HOLD': 17, 'SELL': 1}
+[paper] 2024-09-26  best so far: A|SYN00|random_forest        +10.48%  orders: {'HOLD': 18}
+[paper] 2024-09-27  best so far: B|universe|hist_gb           +10.98%  orders: {'HOLD': 17, 'BUY': 1}
+[paper] 2024-09-30  best so far: B|universe|hist_gb           +14.24%  orders: {'HOLD': 16, 'SELL': 1, 'BUY': 1}
+
+[paper] decisions taken at the close of 2024-09-30 (fill at next open):
+                strategy    equity  total_return  score action_for_tomorrow target_weights
+     A|SYN00|always_long 102474.54        0.0247 1.0000                HOLD               
+         A|SYN00|hist_gb 109325.40        0.0933 0.4213                HOLD               
+        A|SYN00|logistic  91736.67       -0.0826 0.5166                HOLD               
+   A|SYN00|momentum_rule  88793.04       -0.1121 0.0000                SELL     SYN00:0.00
+   A|SYN00|random_forest 110478.63        0.1048 0.4525                HOLD               
+     A|SYN01|always_long 106117.61        0.0612 1.0000                HOLD               
+         A|SYN01|hist_gb  99348.30       -0.0065 0.8199                 BUY     SYN01:1.00
+        A|SYN01|logistic 100000.00        0.0000 0.4308                HOLD               
+   A|SYN01|momentum_rule 108311.33        0.0831 1.0000                HOLD               
+   A|SYN01|random_forest 106433.80        0.0643 0.6001                HOLD               
+  B|universe|always_long 102850.28        0.0285    NaN                HOLD               
+      B|universe|hist_gb 114240.14        0.1424    NaN                HOLD               
+     B|universe|logistic 110734.21        0.1073    NaN                HOLD               
+B|universe|momentum_rule 105614.87        0.0561    NaN                HOLD               
+B|universe|random_forest 110500.95        0.1050    NaN                HOLD               
+    A|SYN00|buy_and_hold 102474.54        0.0247    NaN                HOLD               
+    A|SYN01|buy_and_hold 106117.61        0.0612    NaN                HOLD               
+ B|universe|equal_weight 109100.87        0.0910    NaN                HOLD               
+
+[paper] LEADERBOARD
+                strategy line   target         model  days      equity  total_return  sharpe  max_drawdown  n_trades     costs
+   A|SYN00|random_forest    A    SYN00 random_forest    60 110478.6325        0.1048  2.5845       -0.0272         2  210.4893
+         A|SYN00|hist_gb    A    SYN00       hist_gb    60 109325.3965        0.0933  1.5441       -0.0971        10 1088.8666
+     A|SYN00|always_long    A    SYN00   always_long    60 102474.5394        0.0247  0.4739       -0.1394         1   99.9001
+    A|SYN00|buy_and_hold    A    SYN00  buy_and_hold    60 102474.5394        0.0247  0.4739       -0.1394         1   99.9001
+        A|SYN00|logistic    A    SYN00      logistic    60  91736.6687       -0.0826 -1.7397       -0.0912         6  582.2763
+   A|SYN00|momentum_rule    A    SYN00 momentum_rule    60  88793.0421       -0.1121 -2.2334       -0.1642         7  637.2303
+   A|SYN01|momentum_rule    A    SYN01 momentum_rule    60 108311.3262        0.0831  2.3790       -0.0300         5  496.1284
+   A|SYN01|random_forest    A    SYN01 random_forest    60 106433.7977        0.0643  1.9876       -0.0300         1   99.9001
+     A|SYN01|always_long    A    SYN01   always_long    60 106117.6099        0.0612  0.9057       -0.1974         1   99.9001
+    A|SYN01|buy_and_hold    A    SYN01  buy_and_hold    60 106117.6099        0.0612  0.9057       -0.1974         1   99.9001
+        A|SYN01|logistic    A    SYN01      logistic    60 100000.0000        0.0000  0.0000        0.0000         0    0.0000
+         A|SYN01|hist_gb    A    SYN01       hist_gb    60  99348.2967       -0.0065  0.0107       -0.1233        12 1208.0625
+      B|universe|hist_gb    B universe       hist_gb    60 114240.1394        0.1424  2.3584       -0.0627        54 1392.2662
+     B|universe|logistic    B universe      logistic    60 110734.2067        0.1073  1.8394       -0.0766        54 1361.7565
+B|universe|random_forest    B universe random_forest    60 110500.9522        0.1050  1.8508       -0.0726        54 1355.1389
+ B|universe|equal_weight    B universe  equal_weight    60 109100.8745        0.0910  1.8854       -0.0743         8   99.9001
+B|universe|momentum_rule    B universe momentum_rule    60 105614.8745        0.0561  1.0687       -0.0787        52 1184.2532
+  B|universe|always_long    B universe   always_long    60 102850.2836        0.0285  0.6142       -0.1027        36  122.9737
+[paper] plot: outputs/paper_equity.png
+
+##########################################################################################
+# BACKTEST LEADERBOARD  session=demo-20261030-150853  (out-of-sample, after costs)
+##########################################################################################
+line   target         model     stage beats_bench  accuracy   auc     ic  bt_return  bt_sharpe  bt_max_dd  bench_return  excess_return
+   A    SYN00 momentum_rule candidate        True     0.500 0.493  0.041      0.304      0.660     -0.243         0.234          0.069
+   A    SYN00   always_long candidate       False     0.540 0.500  0.000      0.234      0.491     -0.347         0.234          0.000
+   A    SYN00       hist_gb  champion       False     0.454 0.446 -0.148     -0.180     -0.348     -0.274         0.234         -0.414
+   A    SYN00 random_forest candidate       False     0.464 0.449 -0.110     -0.240     -0.488     -0.318         0.234         -0.475
+   A    SYN00      logistic candidate       False     0.494 0.472 -0.089     -0.359     -1.003     -0.362         0.234         -0.593
+   A    SYN01       hist_gb  champion        True     0.562 0.550  0.100      0.343      0.849     -0.150        -0.063          0.407
+   A    SYN01 random_forest candidate        True     0.510 0.535  0.077      0.113      0.371     -0.202        -0.063          0.176
+   A    SYN01 momentum_rule candidate        True     0.492 0.489 -0.012      0.029      0.183     -0.219        -0.063          0.092
+   A    SYN01   always_long candidate       False     0.482 0.500  0.000     -0.063      0.111     -0.342        -0.063          0.000
+   A    SYN01      logistic candidate       False     0.494 0.469 -0.077     -0.151     -0.269     -0.224        -0.063         -0.088
+   B universe      logistic  champion        True     0.522 0.531  0.061      0.612      1.138     -0.255         0.212          0.399
+   B universe random_forest candidate        True     0.525 0.525  0.073      0.557      1.068     -0.276         0.212          0.345
+   B universe       hist_gb candidate        True     0.514 0.517  0.052      0.499      0.959     -0.250         0.212          0.286
+   B universe   always_long candidate        True     0.500 0.500  0.000      0.298      0.635     -0.261         0.212          0.085
+   B universe momentum_rule candidate       False     0.508 0.508  0.054      0.142      0.390     -0.310         0.212         -0.071
+
+##########################################################################################
+# PAPER-TRADING LEADERBOARD
+##########################################################################################
+                strategy line   target         model  days      equity  total_return  sharpe  max_drawdown  n_trades     costs
+   A|SYN00|random_forest    A    SYN00 random_forest    60 110478.6325        0.1048  2.5845       -0.0272         2  210.4893
+         A|SYN00|hist_gb    A    SYN00       hist_gb    60 109325.3965        0.0933  1.5441       -0.0971        10 1088.8666
+     A|SYN00|always_long    A    SYN00   always_long    60 102474.5394        0.0247  0.4739       -0.1394         1   99.9001
+    A|SYN00|buy_and_hold    A    SYN00  buy_and_hold    60 102474.5394        0.0247  0.4739       -0.1394         1   99.9001
+        A|SYN00|logistic    A    SYN00      logistic    60  91736.6687       -0.0826 -1.7397       -0.0912         6  582.2763
+   A|SYN00|momentum_rule    A    SYN00 momentum_rule    60  88793.0421       -0.1121 -2.2334       -0.1642         7  637.2303
+   A|SYN01|momentum_rule    A    SYN01 momentum_rule    60 108311.3262        0.0831  2.3790       -0.0300         5  496.1284
+   A|SYN01|random_forest    A    SYN01 random_forest    60 106433.7977        0.0643  1.9876       -0.0300         1   99.9001
+     A|SYN01|always_long    A    SYN01   always_long    60 106117.6099        0.0612  0.9057       -0.1974         1   99.9001
+    A|SYN01|buy_and_hold    A    SYN01  buy_and_hold    60 106117.6099        0.0612  0.9057       -0.1974         1   99.9001
+        A|SYN01|logistic    A    SYN01      logistic    60 100000.0000        0.0000  0.0000        0.0000         0    0.0000
+         A|SYN01|hist_gb    A    SYN01       hist_gb    60  99348.2967       -0.0065  0.0107       -0.1233        12 1208.0625
+      B|universe|hist_gb    B universe       hist_gb    60 114240.1394        0.1424  2.3584       -0.0627        54 1392.2662
+     B|universe|logistic    B universe      logistic    60 110734.2067        0.1073  1.8394       -0.0766        54 1361.7565
+B|universe|random_forest    B universe random_forest    60 110500.9522        0.1050  1.8508       -0.0726        54 1355.1389
+ B|universe|equal_weight    B universe  equal_weight    60 109100.8745        0.0910  1.8854       -0.0743         8   99.9001
+B|universe|momentum_rule    B universe momentum_rule    60 105614.8745        0.0561  1.0687       -0.0787        52 1184.2532
+  B|universe|always_long    B universe   always_long    60 102850.2836        0.0285  0.6142       -0.1027        36  122.9737
+
+##########################################################################################
+# PAPER vs BACKTEST  (a large drop from backtest to paper = overfitting warning)
+##########################################################################################
+                strategy  days  paper_return  paper_sharpe  bt_return  bt_sharpe
+   A|SYN00|random_forest    60         0.105         2.584     -0.240     -0.488
+         A|SYN00|hist_gb    60         0.093         1.544     -0.180     -0.348
+     A|SYN00|always_long    60         0.025         0.474      0.234      0.491
+    A|SYN00|buy_and_hold    60         0.025         0.474        NaN        NaN
+        A|SYN00|logistic    60        -0.083        -1.740     -0.359     -1.003
+   A|SYN00|momentum_rule    60        -0.112        -2.233      0.304      0.660
+   A|SYN01|momentum_rule    60         0.083         2.379      0.029      0.183
+   A|SYN01|random_forest    60         0.064         1.988      0.113      0.371
+     A|SYN01|always_long    60         0.061         0.906     -0.063      0.111
+    A|SYN01|buy_and_hold    60         0.061         0.906        NaN        NaN
+        A|SYN01|logistic    60         0.000         0.000     -0.151     -0.269
+         A|SYN01|hist_gb    60        -0.007         0.011      0.343      0.849
+      B|universe|hist_gb    60         0.142         2.358      0.499      0.959
+     B|universe|logistic    60         0.107         1.839      0.612      1.138
+B|universe|random_forest    60         0.105         1.851      0.557      1.068
+ B|universe|equal_weight    60         0.091         1.885        NaN        NaN
+B|universe|momentum_rule    60         0.056         1.069      0.142      0.390
+  B|universe|always_long    60         0.029         0.614      0.298      0.635
+
+plot: outputs/paper_equity.png

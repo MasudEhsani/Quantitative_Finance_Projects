@@ -1,0 +1,908 @@
+============================= test session starts ==============================
+platform linux -- Python 3.13.18, pytest-9.1.1, pluggy-1.6.0 -- /usr/local/bin/python
+cachedir: .pytest_cache
+rootdir: /home/claude/ml_trading_pipeline
+configfile: pyproject.toml
+plugins: platformdirs-4.13.0, anyio-4.15.1
+collecting ... collected 73 items
+
+tests/test_00_config.py::test_default_config_loads 
+==============================================================================
+  CONFIG: default.yaml loads with every section
+==============================================================================
+  section 'project': 2 keys
+  section 'data': 8 keys
+  section 'features': 9 keys
+  section 'labels': 4 keys
+  section 'validation': 5 keys
+  section 'models': 6 keys
+  section 'line_a': 4 keys
+  section 'line_b': 3 keys
+  section 'backtest': 2 keys
+  section 'tracking': 5 keys
+  section 'paper': 4 keys
+  models configured: ['always_long', 'momentum_rule', 'logistic', 'random_forest', 'hist_gb', 'lightgbm']
+  purge_days derived from horizon = 5
+PASSED
+tests/test_00_config.py::test_deep_merge_keeps_untouched_keys 
+==============================================================================
+  CONFIG: deep merge only replaces what the override names
+==============================================================================
+  base={'a': {'x': 1, 'y': 2}, 'b': 3}
+  override={'a': {'y': 20}}
+  merged={'a': {'x': 1, 'y': 20}, 'b': 3}
+PASSED
+tests/test_00_config.py::test_real_data_config_merges_on_defaults 
+==============================================================================
+  CONFIG: real_data.yaml inherits everything it does not override
+==============================================================================
+  source=yfinance  tickers=16  horizon(inherited)=5  test_days=252
+PASSED
+tests/test_00_config.py::test_models_section_is_replaced_not_merged 
+==============================================================================
+  CONFIG: listing `models:` in an override means exactly those models
+==============================================================================
+  models after override: ['logistic']
+PASSED
+tests/test_00_config.py::test_override_file 
+==============================================================================
+  CONFIG: a user YAML file overrides defaults
+==============================================================================
+  horizon=10  purge_days=10
+PASSED
+tests/test_01_data.py::test_synthetic_prices_shape_and_schema 
+==============================================================================
+  DATA: synthetic generator produces a valid long OHLCV frame
+==============================================================================
+                         open        high        low       close     volume
+date       ticker                                                          
+2019-01-01 SYN00    49.871552   50.846826  49.033289   50.006298  1204107.0
+           SYN01    62.565409   62.945471  60.739592   61.110818  1942053.0
+           SYN02    75.079877   75.198298  73.664443   73.780815  1224108.0
+           SYN03    87.330670   89.054180  87.099751   88.819324  1908140.0
+           SYN04   100.193539  104.242716  99.469709  103.495035  1586046.0
+2019-01-02 SYN00    50.002850   50.219636  49.690776   49.907147   547538.0
+
+per-ticker summary:
+             first        last  rows  last_close  ann_vol  total_return
+ticker                                                                 
+SYN00   2019-01-01  2021-09-06   700        8.39    0.368        -0.832
+SYN01   2019-01-01  2021-09-06   700       51.23    0.191        -0.162
+SYN02   2019-01-01  2021-09-06   700       58.79    0.328        -0.203
+SYN03   2019-01-01  2021-09-06   700       74.80    0.193        -0.158
+SYN04   2019-01-01  2021-09-06   700       95.96    0.320        -0.073
+PASSED
+tests/test_01_data.py::test_synthetic_is_deterministic 
+==============================================================================
+  DATA: same seed -> identical data; different seed -> different data
+==============================================================================
+  seed=1 twice: identical  |  seed=2: different  -> OK
+PASSED
+tests/test_01_data.py::test_synthetic_momentum_is_detectable 
+==============================================================================
+  DATA: the planted momentum makes 5d past return predict next-day return
+==============================================================================
+  corr(past 5d return, next-day return): momentum=0.05 -> +0.144   momentum=0 -> +0.016
+PASSED
+tests/test_01_data.py::test_validation_catches_bad_data[high<low]   caught as expected -> inconsistent bars: 3500 with high < max(open, close), 0 with low > min(open, close)
+PASSED
+tests/test_01_data.py::test_validation_catches_bad_data[nan_close]   caught as expected -> 1 NaN close prices
+PASSED
+tests/test_01_data.py::test_validation_catches_bad_data[neg_volume]   caught as expected -> volume must be >= 0
+PASSED
+tests/test_01_data.py::test_validation_catches_bad_data[unsorted]   caught as expected -> index must be sorted by (date, ticker)
+PASSED
+tests/test_01_data.py::test_validation_catches_bad_data[duplicate]   caught as expected -> 1 duplicated (date, ticker) rows
+PASSED
+tests/test_01_data.py::test_validation_catches_bad_data[missing_col]   caught as expected -> missing columns: ['volume']
+PASSED
+tests/test_01_data.py::test_validation_catches_bad_data[flat_index]   caught as expected -> index must be MultiIndex ['date', 'ticker'], got [None]
+PASSED
+tests/test_01_data.py::test_yfinance_conversion_all_layouts[single] 
+==============================================================================
+  DATA: yfinance result layout 'single' converts to long format (offline test)
+==============================================================================
+                   open  high  low  close  volume
+date       ticker                                
+2024-01-01 AAA     10.0  11.0  9.0   10.5  1000.0
+2024-01-02 AAA     10.0  11.0  9.0   10.5  1000.0
+2024-01-03 AAA     10.0  11.0  9.0   10.5  1000.0
+PASSED
+tests/test_01_data.py::test_yfinance_conversion_all_layouts[ticker_first] 
+==============================================================================
+  DATA: yfinance result layout 'ticker_first' converts to long format (offline test)
+==============================================================================
+                   open  high  low  close  volume
+date       ticker                                
+2024-01-01 AAA     10.0  11.0  9.0   10.5  1000.0
+           BBB     10.0  11.0  9.0   10.5  1000.0
+2024-01-02 AAA     10.0  11.0  9.0   10.5  1000.0
+           BBB     10.0  11.0  9.0   10.5  1000.0
+2024-01-03 AAA     10.0  11.0  9.0   10.5  1000.0
+           BBB     10.0  11.0  9.0   10.5  1000.0
+PASSED
+tests/test_01_data.py::test_yfinance_conversion_all_layouts[field_first] 
+==============================================================================
+  DATA: yfinance result layout 'field_first' converts to long format (offline test)
+==============================================================================
+                   open  high  low  close  volume
+date       ticker                                
+2024-01-01 AAA     10.0  11.0  9.0   10.5  1000.0
+           BBB     10.0  11.0  9.0   10.5  1000.0
+2024-01-02 AAA     10.0  11.0  9.0   10.5  1000.0
+           BBB     10.0  11.0  9.0   10.5  1000.0
+2024-01-03 AAA     10.0  11.0  9.0   10.5  1000.0
+           BBB     10.0  11.0  9.0   10.5  1000.0
+PASSED
+tests/test_01_data.py::test_csv_roundtrip 
+==============================================================================
+  DATA: CSV loader reads the documented long format
+==============================================================================
+  wrote prices.csv:
+date,ticker,open,high,low,close,volume
+2019-01-01,SYN00,49.871552267638954,50.8468262674516,49.0332890478984,50.00629817854245,1204107.0
+  read back identical -> OK
+PASSED
+tests/test_01_data.py::test_load_prices_uses_cache 
+==============================================================================
+  DATA: load_prices() writes a cache on first call and reads it on the second
+==============================================================================
+[data] cached to /tmp/pytest-of-root/pytest-12/test_load_prices_uses_cache0/synthetic_2400092a8784.pkl
+[data] source=synthetic tickers=2 days=60 range=2019-01-01..2019-03-25
+  cache files: ['synthetic_2400092a8784.pkl']
+[data] loaded from cache /tmp/pytest-of-root/pytest-12/test_load_prices_uses_cache0/synthetic_2400092a8784
+PASSED
+tests/test_02_features.py::test_features_overview 
+==============================================================================
+  FEATURES: one row per (date, ticker), list of columns and warm-up NaNs
+==============================================================================
+  21 features for 3500 rows
+  warm-up NaN rows per ticker (comes from the longest look-back window):
+ret_1            1
+ret_5            5
+ret_10          10
+ret_21          21
+ret_63          63
+sma_ratio_10     9
+sma_ratio_20    19
+sma_ratio_50    49
+vol_5            5
+vol_21          21
+vol_63          63
+rsi_14          14
+bb_pctb_20      19
+atr_14_pct      13
+macd_hist       26
+volume_z_21     20
+hl_range         0
+day_of_week      0
+month            0
+rel_ret_5        5
+rel_ret_21      21
+
+  describe() after warm-up:
+               mean    std    min     max
+ret_1        -0.001  0.018 -0.079   0.083
+ret_5        -0.003  0.044 -0.201   0.169
+ret_10       -0.007  0.062 -0.310   0.253
+ret_21       -0.015  0.093 -0.368   0.321
+ret_63       -0.046  0.174 -0.680   0.447
+sma_ratio_10 -0.003  0.033 -0.173   0.123
+sma_ratio_20 -0.006  0.049 -0.215   0.193
+sma_ratio_50 -0.016  0.083 -0.337   0.275
+vol_5         0.258  0.125  0.021   0.788
+vol_21        0.275  0.091  0.110   0.591
+vol_63        0.278  0.082  0.131   0.480
+rsi_14        0.479  0.125  0.137   0.837
+bb_pctb_20    0.462  0.323 -0.306   1.298
+atr_14_pct    0.026  0.006  0.014   0.054
+macd_hist     0.000  0.007 -0.024   0.023
+volume_z_21   0.000  0.977 -3.467   3.513
+hl_range      0.026  0.014  0.002   0.103
+day_of_week   2.000  1.417  0.000   4.000
+month         6.446  3.194  1.000  12.000
+rel_ret_5     0.000  0.031 -0.103   0.099
+rel_ret_21   -0.000  0.072 -0.241   0.244
+PASSED
+tests/test_02_features.py::test_feature_values_on_handmade_series 
+==============================================================================
+  FEATURES: values match hand calculations on a tiny series
+==============================================================================
+  ret_5 on 2024-02-12:        got 0.039221  expected 0.039221
+  sma_ratio_10 on 2024-02-12: got 0.035857  expected 0.035857
+  rsi_14 of a series that only rises: 1.000 (expected 1.0 = RSI 100)
+  hl_range: got 0.015385 expected 0.015385
+PASSED
+tests/test_02_features.py::test_no_lookahead_truncation 
+==============================================================================
+  LEAKAGE: features up to T are identical with or without data after T
+==============================================================================
+  cut date T = 2020-05-05, compared 1755 rows x 40 columns
+  max |difference| = 0.0
+PASSED
+tests/test_02_features.py::test_no_lookahead_future_poison 
+==============================================================================
+  LEAKAGE: multiplying all prices after T by 10 does not change features up to T
+==============================================================================
+  features <= T identical; total change after T = 4578.5 (must be > 0)
+PASSED
+tests/test_02_features.py::test_cross_sectional_ranks 
+==============================================================================
+  FEATURES: cross-sectional ranks are in (0, 1] and computed per date
+==============================================================================
+         ret_5  cs_rank_ret_5  vol_21  cs_rank_vol_21
+ticker                                               
+SYN00  -0.0859            0.2  0.3414             1.0
+SYN01   0.0078            0.6  0.1601             0.2
+SYN02   0.0214            0.8  0.3126             0.8
+SYN03   0.0224            1.0  0.1617             0.4
+SYN04   0.0023            0.4  0.2815             0.6
+PASSED
+tests/test_03_labels.py::test_forward_return_alignment 
+==============================================================================
+  LABELS: forward_return(t) = close(t+h)/close(t) - 1, per ticker
+==============================================================================
+           close       fwd_ret_2        
+ticker       AAA   BBB       AAA     BBB
+date                                    
+2024-01-01  10.0  20.0    0.2000 -0.1000
+2024-01-02  11.0  19.0    0.0000  0.0000
+2024-01-03  12.0  18.0   -0.1667  0.1667
+2024-01-04  11.0  19.0    0.0909  0.0526
+2024-01-05  10.0  21.0    0.3000  0.0476
+2024-01-08  12.0  20.0    0.0000  0.1500
+2024-01-09  13.0  22.0       NaN     NaN
+2024-01-10  12.0  23.0       NaN     NaN
+  checked: values, NaN tail, no mixing between tickers -> OK
+PASSED
+tests/test_03_labels.py::test_direction_and_three_class 
+==============================================================================
+  LABELS: direction (0/1) and three_class (-1/0/1 with dead zone)
+==============================================================================
+            fwd_1  direction  three_class
+date                                     
+2024-01-01  0.100        1.0          1.0
+2024-01-02  0.091        1.0          1.0
+2024-01-03 -0.083        0.0          0.0
+2024-01-04 -0.091        0.0         -1.0
+2024-01-05  0.200        1.0          1.0
+2024-01-08  0.083        1.0          0.0
+2024-01-09 -0.077        0.0          0.0
+2024-01-10    NaN        NaN          NaN
+PASSED
+tests/test_03_labels.py::test_cs_outperform_is_balanced 
+==============================================================================
+  LABELS: cs_outperform marks the better half of the universe each day
+==============================================================================
+  share of 1s per date: mean=0.400 min=0.400 max=0.400
+  (with 5 tickers, 2 of 5 are above the median -> 0.4 each day)
+PASSED
+tests/test_03_labels.py::test_label_tail_is_nan 
+==============================================================================
+  LABELS: exactly `horizon` unlabeled rows at the end of every ticker
+==============================================================================
+ticker
+SYN00    5
+SYN01    5
+SYN02    5
+SYN03    5
+SYN04    5
+PASSED
+tests/test_04_splits_models.py::test_walk_forward_layout 
+==============================================================================
+  SPLITS: walk-forward folds, purge gap and hold-out
+==============================================================================
+  fold 0: train 2019-01-01..2020-10-27 (476 d) | test 2020-11-04..2021-01-29 (63 d)
+  fold 1: train 2019-01-01..2021-01-22 (539 d) | test 2021-02-01..2021-04-28 (63 d)
+  fold 2: train 2019-01-01..2021-04-21 (602 d) | test 2021-04-29..2021-07-26 (63 d)
+  holdout: 2021-07-27..2021-09-06 (30 d)  purge=5 d
+PASSED
+tests/test_04_splits_models.py::test_purge_removes_label_leakage 
+==============================================================================
+  SPLITS: with purge >= horizon no training label 'sees' a test-period price
+==============================================================================
+  purge=0: folds whose last training label reaches into test = 3
+  purge=5: folds whose last training label reaches into test = 0
+PASSED
+tests/test_04_splits_models.py::test_rolling_window_and_errors 
+==============================================================================
+  SPLITS: rolling window caps train length; too little data raises a clear error
+==============================================================================
+  rolling train lengths: [150, 150]
+  error message: not enough history: 700 usable dates, but need 505 (train+purge) + 20x60 (test). Reduce n_splits/test_days/min_train_days.
+PASSED
+tests/test_04_splits_models.py::test_registry 
+==============================================================================
+  MODELS: registry and optional libraries
+==============================================================================
+  always_long     available=True
+  momentum_rule   available=True
+  logistic        available=True
+  random_forest   available=True
+  hist_gb         available=True
+  lightgbm        available=False
+[models] skipping 'lightgbm': library 'lightgbm' not installed
+PASSED
+tests/test_04_splits_models.py::test_model_interface[always_long] 
+==============================================================================
+  MODELS: 'always_long' fits, predicts probabilities/scores and survives pickling
+==============================================================================
+  always_long    proba shape=(948, 2) score range=[1.000, 1.000] mean=1.000 accuracy=0.440
+PASSED
+tests/test_04_splits_models.py::test_model_interface[momentum_rule] 
+==============================================================================
+  MODELS: 'momentum_rule' fits, predicts probabilities/scores and survives pickling
+==============================================================================
+  momentum_rule  proba shape=(948, 2) score range=[0.000, 1.000] mean=0.346 accuracy=0.531
+PASSED
+tests/test_04_splits_models.py::test_model_interface[logistic] 
+==============================================================================
+  MODELS: 'logistic' fits, predicts probabilities/scores and survives pickling
+==============================================================================
+  logistic       proba shape=(948, 2) score range=[0.125, 0.794] mean=0.468 accuracy=0.589
+     top-3 features: ['sma_ratio_20', 'rsi_14', 'sma_ratio_50']
+PASSED
+tests/test_04_splits_models.py::test_model_interface[random_forest] 
+==============================================================================
+  MODELS: 'random_forest' fits, predicts probabilities/scores and survives pickling
+==============================================================================
+  random_forest  proba shape=(948, 2) score range=[0.293, 0.631] mean=0.481 accuracy=0.545
+     top-3 features: ['macd_hist', 'sma_ratio_50', 'vol_63']
+PASSED
+tests/test_04_splits_models.py::test_model_interface[hist_gb] 
+==============================================================================
+  MODELS: 'hist_gb' fits, predicts probabilities/scores and survives pickling
+==============================================================================
+  hist_gb        proba shape=(948, 2) score range=[0.068, 0.961] mean=0.501 accuracy=0.521
+PASSED
+tests/test_04_splits_models.py::test_three_class_score_mapping 
+==============================================================================
+  MODELS: three-class labels map to a single score (0.5 = neutral)
+==============================================================================
+  classes=[-1.  0.  1.]  proba row0=[0.334 0.213 0.453]  score0=0.560
+PASSED
+tests/test_04_splits_models.py::test_fit_guards 
+==============================================================================
+  MODELS: clear errors for NaN labels, missing features, predict before fit
+==============================================================================
+  all three guards raise -> OK
+PASSED
+tests/test_04_splits_models.py::test_models_learn_planted_signal 
+==============================================================================
+  MODELS: on data with strong planted momentum, ML beats a coin flip out-of-sample
+==============================================================================
+  logistic  test accuracy 0.560  vs majority-class 0.500
+  hist_gb   test accuracy 0.535  vs majority-class 0.500
+PASSED
+tests/test_04_splits_models.py::test_lightgbm_model SKIPPED (lightgb...)
+tests/test_05_signals_backtest.py::test_threshold_signals_and_stateful_positions 
+==============================================================================
+  SIGNALS: buy > 0.55, sell < 0.45, hold in between keeps the previous position
+==============================================================================
+            score  signal  pos_long_only  pos_long_short
+date                                                    
+2024-01-01   0.50       0            0.0             0.0
+2024-01-02   0.60       1            1.0             1.0
+2024-01-03   0.50       0            1.0             1.0
+2024-01-04   0.52       0            1.0             1.0
+2024-01-05   0.40      -1            0.0            -1.0
+2024-01-08   0.50       0            0.0            -1.0
+2024-01-09   0.70       1            1.0             1.0
+PASSED
+tests/test_05_signals_backtest.py::test_line_a_weights_split_capital 
+==============================================================================
+  SIGNALS: Line A with 2 tickers -> each gets half the capital when long
+==============================================================================
+              A    B
+date                
+2024-01-01  0.5  0.0
+2024-01-02  0.5  0.5
+2024-01-03  0.0  0.5
+PASSED
+tests/test_05_signals_backtest.py::test_line_b_top_k_and_rebalance 
+==============================================================================
+  SIGNALS: Line B longs the top-k, holds between rebalances, long/short is dollar-neutral
+==============================================================================
+long-only, top_k=2, rebalance every 2 days:
+ ticker        A    B    C    D
+date                          
+2024-01-01  0.5  0.5  0.0  0.0
+2024-01-02  0.5  0.5  0.0  0.0
+2024-01-03  0.5  0.5  0.0  0.0
+2024-01-04  0.5  0.5  0.0  0.0
+long/short, top_k=1, bottom_k=1:
+ ticker        A    B    C    D
+date                          
+2024-01-01  0.5  0.0 -0.5  0.0
+2024-01-02 -0.5  0.0  0.5  0.0
+2024-01-03  0.5  0.0  0.0 -0.5
+2024-01-04 -0.5  0.5  0.0  0.0
+PASSED
+tests/test_05_signals_backtest.py::test_backtest_hand_calculation 
+==============================================================================
+  BACKTEST: decide at close t, trade at open t+1, pay costs on turnover
+==============================================================================
+            target  held  gross  turnover  costs    net
+date                                                   
+2024-01-01     1.0   0.0    0.0       0.0  0.000  0.000
+2024-01-02     1.0   1.0   -0.1       1.0  0.001 -0.101
+2024-01-03     0.0   1.0    0.0       0.0  0.000  0.000
+2024-01-04     0.0   0.0    0.0       1.0  0.001 -0.001
+2024-01-05     0.0   0.0    0.0       0.0  0.000  0.000
+  final equity 89,810.10 == 100,000 x 0.899 x 0.999 -> OK
+PASSED
+tests/test_05_signals_backtest.py::test_buy_and_hold_matches_price_ratio 
+==============================================================================
+  BACKTEST: buy & hold without costs earns exactly open[last]/open[first trade] - 1
+==============================================================================
+  backtest total return +0.220482   price ratio +0.220482
+PASSED
+tests/test_05_signals_backtest.py::test_no_same_bar_cheating 
+==============================================================================
+  BACKTEST: knowing today's open-to-open move gives NO edge (it is traded one day later)
+==============================================================================
+  engine Sharpe (correct timing): +0.42
+  Sharpe if traded on the same bar (bug): +15.27
+PASSED
+tests/test_05_signals_backtest.py::test_costs_scale_with_turnover 
+==============================================================================
+  BACKTEST: higher costs reduce returns exactly by turnover x cost
+==============================================================================
+  total turnover 97.0   sum of return differences 0.09700  (= turnover x 0.001 = 0.09700)
+PASSED
+tests/test_05_signals_backtest.py::test_metrics_known_values 
+==============================================================================
+  METRICS: Sharpe, drawdown and hit rate on a hand-made return series
+==============================================================================
+  total_return  +0.009299
+  sharpe        +1.650553
+  max_drawdown  -0.020000
+  hit_rate      +0.500000
+PASSED
+tests/test_06_tracking.py::test_flatten 
+==============================================================================
+  TRACKING: nested config dicts are flattened to string params
+==============================================================================
+  {'a': '1', 'b.c': '[1, 2]', 'b.d.e': 'None'}
+PASSED
+tests/test_06_tracking.py::test_local_tracker 
+==============================================================================
+  TRACKING: local folder store (used when mlflow is not installed)
+==============================================================================
+                          run_id     run_name  metrics.sharpe params.nested.C   tags.model
+988c39bae8194bb085c0cf36b47a90cf    run-other             0.5             0.1    run-other
+87ec2e94afd84c65833b5e9d7a6ee0d4 run-logistic             1.5             0.1 run-logistic
+  fold_accuracy history: {0: 0.5, 1: 0.6, 2: 0.7, 3: 0.8}
+  model reloaded from the tracker predicts identically -> OK
+  files of one run: ['artifacts/model/model.pkl', 'artifacts/note.txt', 'artifacts/table.csv', 'meta.json', 'metrics.csv']
+PASSED
+tests/test_06_tracking.py::test_local_tracker_marks_failed_runs 
+==============================================================================
+  TRACKING: a run that raises is stored with status FAILED
+==============================================================================
+  run_name  status
+0     boom  FAILED
+PASSED
+tests/test_06_tracking.py::test_mlflow_tracker_with_test_double 
+==============================================================================
+  TRACKING: MLflowTracker code path against a strict MLflow test double
+==============================================================================
+  tracking uri: sqlite:////tmp/pytest-of-root/pytest-12/test_mlflow_tracker_with_test_0/mlflow.db
+                          run_id     run_name  metrics.sharpe params.nested.C   tags.model
+ffee50e89cdd4026aa84ae2de578aee9 run-logistic             1.5             0.1 run-logistic
+b82766a2b6364f3a82a68ff81bcb30cb    run-other             0.5             0.1    run-other
+  fold_accuracy history: {0: 0.5, 1: 0.6, 2: 0.7, 3: 0.8}
+  model reloaded from the tracker predicts identically -> OK
+PASSED
+tests/test_06_tracking.py::test_get_tracker_factory 
+==============================================================================
+  TRACKING: backend 'auto' picks mlflow when importable, else the local store
+==============================================================================
+[tracking] backend=local experiment=trading-x
+[tracking] backend=mlflow experiment=trading-x
+PASSED
+tests/test_06_tracking.py::test_real_mlflow SKIPPED (mlflow not inst...)
+tests/test_07_training.py::test_prepare_dataset 
+==============================================================================
+  PIPELINE: datasets for Line A and Line B
+==============================================================================
+  Line A: X (3185, 21)  labelled 3160  unlabelled tail 25  cs_rank features: 0
+  Line B: X (3185, 40)  labelled 3160  unlabelled tail 25  cs_rank features: 19
+PASSED
+tests/test_07_training.py::test_walk_forward_scores_are_out_of_sample 
+==============================================================================
+  PIPELINE: walk-forward scores exist only for test blocks, one per row
+==============================================================================
+ fold train_start  train_end test_start   test_end  n_train  accuracy   auc  ic_mean
+    0  2019-03-29 2020-10-27 2020-11-04 2021-01-29     2065     0.660 0.644    0.265
+    1  2019-03-29 2021-01-22 2021-02-01 2021-04-28     2380     0.508 0.620    0.133
+    2  2019-03-29 2021-04-21 2021-04-29 2021-07-26     2695     0.540 0.512   -0.071
+PASSED
+tests/test_07_training.py::test_random_labels_give_no_edge 
+==============================================================================
+  PIPELINE: with random labels the out-of-sample accuracy is ~50% (no hidden leakage)
+==============================================================================
+  logistic  accuracy on random labels: 0.504
+  hist_gb   accuracy on random labels: 0.503
+PASSED
+tests/test_07_training.py::test_pipeline_skill_grows_with_planted_signal 
+==============================================================================
+  PIPELINE: dose-response - more planted momentum -> higher out-of-sample AUC and IC
+==============================================================================
+  momentum=0.00: accuracy=0.517 auc=0.512 ic=+0.017
+  momentum=0.06: accuracy=0.561 auc=0.584 ic=+0.172
+PASSED
+tests/test_07_training.py::test_final_model_never_sees_holdout 
+==============================================================================
+  PIPELINE: the final (paper-trading) model is trained only before hold-out minus purge
+==============================================================================
+  trained 2019-03-29..2021-07-19 | hold-out starts 2021-07-27 | gap 5 days (purge=5)
+PASSED
+tests/test_07_training.py::test_full_training_session 
+==============================================================================
+  PIPELINE: full session - both lines, all models, backtests, tracking, champion tags
+==============================================================================
+
+[train] session=TEST lines=['A', 'B'] models=['always_long', 'momentum_rule', 'logistic', 'hist_gb']
+[tracking] backend=local experiment=trading-lineA
+[train] Line A: X=(3185, 21), labelled rows=3160, label balance=0.465
+  [A|SYN00|always_long  ] acc=0.344 total_return=-0.542  cagr=-0.645  sharpe=-2.458  max_drawdown=-0.604  hit_rate=+0.439  avg_daily_turnover=+0.005  avg_exposure=+0.995  (0.4s)
+  [A|SYN00|momentum_rule] acc=0.608 total_return=-0.130  cagr=-0.169  sharpe=-1.195  max_drawdown=-0.183  hit_rate=+0.368  avg_daily_turnover=+0.053  avg_exposure=+0.174  (0.4s)
+  [A|SYN00|logistic     ] acc=0.561 total_return=-0.174  cagr=-0.224  sharpe=-1.253  max_drawdown=-0.231  hit_rate=+0.424  avg_daily_turnover=+0.032  avg_exposure=+0.295  (0.4s)
+  [A|SYN00|hist_gb      ] acc=0.550 total_return=-0.192  cagr=-0.246  sharpe=-0.933  max_drawdown=-0.282  hit_rate=+0.398  avg_daily_turnover=+0.147  avg_exposure=+0.416  (0.6s)
+  [A|SYN01|always_long  ] acc=0.434 total_return=-0.207  cagr=-0.265  sharpe=-1.185  max_drawdown=-0.258  hit_rate=+0.476  avg_daily_turnover=+0.005  avg_exposure=+0.995  (0.3s)
+  [A|SYN01|momentum_rule] acc=0.487 total_return=-0.070  cagr=-0.092  sharpe=-0.517  max_drawdown=-0.180  hit_rate=+0.440  avg_daily_turnover=+0.105  avg_exposure=+0.342  (0.4s)
+  [A|SYN01|logistic     ] acc=0.392 total_return=-0.271  cagr=-0.343  sharpe=-2.999  max_drawdown=-0.290  hit_rate=+0.391  avg_daily_turnover=+0.063  avg_exposure=+0.453  (0.4s)
+  [A|SYN01|hist_gb      ] acc=0.418 total_return=-0.278  cagr=-0.351  sharpe=-2.872  max_drawdown=-0.311  hit_rate=+0.392  avg_daily_turnover=+0.116  avg_exposure=+0.574  (0.6s)
+[tracking] backend=local experiment=trading-lineB
+[train] Line B: X=(3185, 40), labelled rows=3160, label balance=0.400
+  [B|universe|always_long  ] acc=0.400 total_return=-0.391  cagr=-0.481  sharpe=-2.262  max_drawdown=-0.446  hit_rate=+0.444  avg_daily_turnover=+0.005  avg_exposure=+0.995  (0.4s)
+  [B|universe|momentum_rule] acc=0.542 total_return=-0.290  cagr=-0.365  sharpe=-1.534  max_drawdown=-0.364  hit_rate=+0.450  avg_daily_turnover=+0.121  avg_exposure=+0.995  (0.6s)
+  [B|universe|logistic     ] acc=0.590 total_return=-0.212  cagr=-0.271  sharpe=-1.173  max_drawdown=-0.291  hit_rate=+0.450  avg_daily_turnover=+0.163  avg_exposure=+0.995  (0.7s)
+  [B|universe|hist_gb      ] acc=0.542 total_return=-0.406  cagr=-0.499  sharpe=-2.428  max_drawdown=-0.459  hit_rate=+0.460  avg_daily_turnover=+0.189  avg_exposure=+0.995  (1.1s)
+
+[train] SUMMARY (out-of-sample, after costs)
+line   target         model  accuracy   auc     ic  total_return  sharpe  max_dd  bench_return  bench_sharpe
+   A    SYN00   always_long     0.344 0.500  0.000        -0.542  -2.458  -0.604        -0.542        -2.458
+   A    SYN00 momentum_rule     0.608 0.508 -0.042        -0.130  -1.195  -0.183        -0.542        -2.458
+   A    SYN00      logistic     0.561 0.526  0.065        -0.174  -1.253  -0.231        -0.542        -2.458
+   A    SYN00       hist_gb     0.550 0.584  0.153        -0.192  -0.933  -0.282        -0.542        -2.458
+   A    SYN01   always_long     0.434 0.500  0.000        -0.207  -1.185  -0.258        -0.207        -1.185
+   A    SYN01 momentum_rule     0.487 0.466  0.030        -0.070  -0.517  -0.180        -0.207        -1.185
+   A    SYN01      logistic     0.392 0.350 -0.295        -0.271  -2.999  -0.290        -0.207        -1.185
+   A    SYN01       hist_gb     0.418 0.373 -0.227        -0.278  -2.872  -0.311        -0.207        -1.185
+   B universe   always_long     0.400 0.500  0.000        -0.391  -2.262  -0.446        -0.238        -1.454
+   B universe momentum_rule     0.542 0.510  0.057        -0.290  -1.534  -0.364        -0.238        -1.454
+   B universe      logistic     0.590 0.527  0.071        -0.212  -1.173  -0.291        -0.238        -1.454
+   B universe       hist_gb     0.542 0.453 -0.047        -0.406  -2.428  -0.459        -0.238        -1.454
+[train] saved /tmp/pytest-of-root/pytest-12/test_full_training_session0/outputs/training_summary_TEST.csv
+
+  always_long vs benchmark (Line A):
+target  total_return  bench_return
+ SYN00     -0.541938     -0.541938
+ SYN01     -0.207072     -0.207072
+
+  Line A runs logged: 8   champions: ['A-SYN01-hist_gb', 'A-SYN00-hist_gb']
+  artifacts of one run: ['config.yaml', 'equity.csv', 'equity_curve.png', 'fold_metrics.csv', 'model.pkl', 'oos_predictions.csv']
+PASSED
+tests/test_08_paper.py::test_broker_hand_calculation 
+==============================================================================
+  BROKER: order queued at close fills next open, costs reserved, marked at close
+==============================================================================
+  day0 equity 1000.00 | day1 shares 9.990010 (expected 9.990010) cash -0.000000 equity 1098.9011
+  trade: {'date': '2024-01-02', 'decision_date': '2024-01-01', 'ticker': 'X', 'side': 'BUY', 'shares': 9.990009990009991, 'price': 100.0, 'value': 999.0009990009991, 'cost': 0.999000999000999}
+  day2 after selling at 120: cash 1197.6024 positions {} equity 1197.6024
+PASSED
+tests/test_08_paper.py::test_broker_guards_and_persistence 
+==============================================================================
+  BROKER: no same-day fills, no double processing, no leverage, JSON save/load
+==============================================================================
+  all guards raise; ledger round-trips through demo.json (971 bytes)
+PASSED
+tests/test_08_paper.py::test_broker_matches_backtest_exactly 
+==============================================================================
+  BROKER vs BACKTEST: same weights, no costs -> identical equity path
+==============================================================================
+  compared 59 days, max abs difference = 4.37e-11 EUR
+PASSED
+tests/test_08_paper.py::test_load_session_strategies 
+==============================================================================
+  PAPER: strategies = every model of the latest session + benchmarks
+==============================================================================
+[paper] session PAPERTEST: 9 strategies (6 models + benchmarks)
+  A|SYN00|logistic             benchmark=False trained_until=2021-08-02
+  A|SYN00|momentum_rule        benchmark=False trained_until=2021-08-02
+  A|SYN01|logistic             benchmark=False trained_until=2021-08-02
+  A|SYN01|momentum_rule        benchmark=False trained_until=2021-08-02
+  B|universe|logistic          benchmark=False trained_until=2021-08-02
+  B|universe|momentum_rule     benchmark=False trained_until=2021-08-02
+  A|SYN00|buy_and_hold         benchmark=True  trained_until=-
+  A|SYN01|buy_and_hold         benchmark=True  trained_until=-
+  B|universe|equal_weight      benchmark=True  trained_until=-
+PASSED
+tests/test_08_paper.py::test_paper_features_match_full_history 
+==============================================================================
+  PAPER: features from the 400-day look-back window equal features from the full history
+==============================================================================
+  date 2021-09-06: max |window - full| = 5.44e-13
+PASSED
+tests/test_08_paper.py::test_paper_simulation_over_holdout 
+==============================================================================
+  PAPER: replay the hold-out period day by day for every strategy
+==============================================================================
+[tracking] backend=local experiment=trading-paper
+[paper] 2021-08-10  best so far: A|SYN00|logistic             +0.00%  orders: {'BUY': 6, 'REBALANCE': 2, 'HOLD': 1}
+[paper] 2021-08-11  best so far: A|SYN01|logistic             +0.19%  orders: {'HOLD': 9}
+[paper] 2021-08-12  best so far: B|universe|equal_weight      +0.38%  orders: {'HOLD': 8, 'SELL': 1}
+[paper] 2021-08-13  best so far: A|SYN01|logistic             +0.84%  orders: {'HOLD': 9}
+[paper] 2021-08-16  best so far: A|SYN01|logistic             +1.16%  orders: {'HOLD': 9}
+[paper] 2021-08-17  best so far: A|SYN01|logistic             +1.26%  orders: {'HOLD': 6, 'REBALANCE': 2, 'BUY': 1}
+[paper] 2021-08-18  best so far: B|universe|equal_weight      +0.35%  orders: {'HOLD': 9}
+[paper] 2021-08-19  best so far: B|universe|equal_weight      +1.21%  orders: {'HOLD': 7, 'SELL': 2}
+[paper] 2021-08-20  best so far: B|universe|equal_weight      +1.86%  orders: {'HOLD': 9}
+[paper] 2021-08-23  best so far: B|universe|equal_weight      +2.40%  orders: {'HOLD': 9}
+[paper] 2021-08-24  best so far: B|universe|equal_weight      +0.70%  orders: {'HOLD': 6, 'REBALANCE': 2, 'SELL': 1}
+[paper] 2021-08-25  best so far: B|universe|equal_weight      +2.53%  orders: {'HOLD': 7, 'BUY': 2}
+[paper] 2021-08-26  best so far: B|universe|equal_weight      +1.88%  orders: {'HOLD': 8, 'SELL': 1}
+[paper] 2021-08-27  best so far: B|universe|equal_weight      +2.58%  orders: {'HOLD': 9}
+[paper] 2021-08-30  best so far: B|universe|equal_weight      +0.30%  orders: {'HOLD': 9}
+[paper] 2021-08-31  best so far: B|universe|equal_weight      +0.68%  orders: {'HOLD': 7, 'REBALANCE': 2}
+[paper] 2021-09-01  best so far: B|universe|equal_weight      +0.95%  orders: {'HOLD': 9}
+[paper] 2021-09-02  best so far: B|universe|equal_weight      +0.78%  orders: {'HOLD': 8, 'BUY': 1}
+[paper] 2021-09-03  best so far: A|SYN01|logistic             -0.32%  orders: {'HOLD': 8, 'SELL': 1}
+[paper] 2021-09-06  best so far: A|SYN01|logistic             +0.69%  orders: {'HOLD': 9}
+
+  LEADERBOARD
+                strategy   target         model  days      equity  total_return  sharpe  max_drawdown  n_trades    costs
+        A|SYN00|logistic    SYN00      logistic    20  99213.9976       -0.0079 -3.2553       -0.0085         2 199.2134
+    A|SYN00|buy_and_hold    SYN00  buy_and_hold    20  90472.4255       -0.0953 -4.5414       -0.1021         1  99.9001
+   A|SYN00|momentum_rule    SYN00 momentum_rule    20  88189.2087       -0.1181 -6.7266       -0.1181         4 377.1132
+        A|SYN01|logistic    SYN01      logistic    20 100694.0826        0.0069  1.1770       -0.0204         3 300.0798
+   A|SYN01|momentum_rule    SYN01 momentum_rule    20  99633.2790       -0.0037 -1.2014       -0.0100         4 400.5790
+    A|SYN01|buy_and_hold    SYN01  buy_and_hold    20  98825.1989       -0.0117 -1.2480       -0.0338         1  99.9001
+ B|universe|equal_weight universe  equal_weight    20 100111.7247        0.0011  0.1653       -0.0287         5  99.9001
+B|universe|momentum_rule universe momentum_rule    20  94679.1622       -0.0532 -3.9893       -0.0576        10 299.8401
+     B|universe|logistic universe      logistic    20  92920.0211       -0.0708 -6.4346       -0.0777        11 386.9060
+
+  last day of the daily report (Line A, SYN00):
+             strategy   equity    score action_for_tomorrow target_weights
+     A|SYN00|logistic 99214.00 0.504662                HOLD               
+A|SYN00|momentum_rule 88189.21 0.000000                HOLD               
+ A|SYN00|buy_and_hold 90472.43      NaN                HOLD               
+PASSED
+tests/test_08_paper.py::test_paper_is_idempotent_and_resumes 
+==============================================================================
+  PAPER: re-running processes nothing new; a new day processes only that day
+==============================================================================
+  second run: 0 rows (expected 0); next run: 9 rows for 1 new day
+  tracked equity points for B|universe|logistic: 10 (one per day)
+PASSED
+tests/test_08_paper.py::test_in_sample_warning 
+==============================================================================
+  PAPER: trading a day inside a model's training period prints a warning
+==============================================================================
+  [paper] WARNING A|SYN00|logistic: 2020-02-25 is inside the model's training period (trained until 2021-08-02) -> results are in-sample
+PASSED
+tests/test_09_cli_end_to_end.py::test_cli_train_paper_compare 
+==============================================================================
+  CLI: train.py -> paper_trade_daily.py --simulate -> compare_models.py
+==============================================================================
+
+##########################################################################################
+# 1/3  DATA
+##########################################################################################
+[data] cached to /tmp/pytest-of-root/pytest-12/cli0/data/synthetic_7644adeee194.pkl
+[data] source=synthetic tickers=5 days=650 range=2019-01-01..2021-06-28
+             first        last  rows  last_close  ann_vol  total_return
+ticker                                                                 
+SYN00   2019-01-01  2021-06-28   650       17.94    0.221        -0.647
+SYN01   2019-01-01  2021-06-28   650       34.45    0.340        -0.445
+SYN02   2019-01-01  2021-06-28   650       55.40    0.287        -0.280
+SYN03   2019-01-01  2021-06-28   650       33.83    0.339        -0.610
+SYN04   2019-01-01  2021-06-28   650       57.03    0.262        -0.436
+
+##########################################################################################
+# 2/3  WALK-FORWARD TRAINING + BACKTEST
+##########################################################################################
+
+[train] session=CLI lines=['A', 'B'] models=['always_long', 'hist_gb', 'logistic']
+[tracking] backend=local experiment=trading-lineA
+[train] Line A: X=(2935, 21), labelled rows=2910, label balance=0.449
+  [A|SYN00|always_long  ] acc=0.365 total_return=-0.397  cagr=-0.634  sharpe=-3.384  max_drawdown=-0.417  hit_rate=+0.429  avg_daily_turnover=+0.008  avg_exposure=+0.992  (0.3s)
+  [A|SYN00|hist_gb      ] acc=0.484 total_return=-0.243  cagr=-0.424  sharpe=-3.886  max_drawdown=-0.244  hit_rate=+0.275  avg_daily_turnover=+0.063  avg_exposure=+0.283  (0.5s)
+  [A|SYN00|logistic     ] acc=0.603 total_return=-0.102  cagr=-0.192  sharpe=-2.796  max_drawdown=-0.107  hit_rate=+0.267  avg_daily_turnover=+0.047  avg_exposure=+0.094  (0.3s)
+  [A|SYN01|always_long  ] acc=0.452 total_return=-0.284  cagr=-0.485  sharpe=-1.612  max_drawdown=-0.343  hit_rate=+0.484  avg_daily_turnover=+0.008  avg_exposure=+0.992  (0.3s)
+  [A|SYN01|hist_gb      ] acc=0.508 total_return=-0.298  cagr=-0.504  sharpe=-1.854  max_drawdown=-0.343  hit_rate=+0.460  avg_daily_turnover=+0.047  avg_exposure=+0.764  (0.6s)
+  [A|SYN01|logistic     ] acc=0.492 total_return=-0.309  cagr=-0.519  sharpe=-2.114  max_drawdown=-0.381  hit_rate=+0.455  avg_daily_turnover=+0.102  avg_exposure=+0.732  (0.4s)
+[tracking] backend=local experiment=trading-lineB
+[train] Line B: X=(2935, 40), labelled rows=2910, label balance=0.400
+  [B|universe|always_long  ] acc=0.400 total_return=-0.339  cagr=-0.561  sharpe=-2.669  max_drawdown=-0.369  hit_rate=+0.429  avg_daily_turnover=+0.008  avg_exposure=+0.992  (0.4s)
+  [B|universe|hist_gb      ] acc=0.600 total_return=-0.100  cagr=-0.188  sharpe=-0.537  max_drawdown=-0.250  hit_rate=+0.468  avg_daily_turnover=+0.173  avg_exposure=+0.992  (1.0s)
+  [B|universe|logistic     ] acc=0.613 total_return=-0.169  cagr=-0.308  sharpe=-1.067  max_drawdown=-0.250  hit_rate=+0.460  avg_daily_turnover=+0.197  avg_exposure=+0.992  (0.5s)
+
+[train] SUMMARY (out-of-sample, after costs)
+line   target       model  accuracy   auc     ic  total_return  sharpe  max_dd  bench_return  bench_sharpe
+   A    SYN00 always_long     0.365 0.500  0.000        -0.397  -3.384  -0.417        -0.397        -3.384
+   A    SYN00     hist_gb     0.484 0.362 -0.156        -0.243  -3.886  -0.244        -0.397        -3.384
+   A    SYN00    logistic     0.603 0.371 -0.169        -0.102  -2.796  -0.107        -0.397        -3.384
+   A    SYN01 always_long     0.452 0.500  0.000        -0.284  -1.612  -0.343        -0.284        -1.612
+   A    SYN01     hist_gb     0.508 0.509  0.038        -0.298  -1.854  -0.343        -0.284        -1.612
+   A    SYN01    logistic     0.492 0.475 -0.020        -0.309  -2.114  -0.381        -0.284        -1.612
+   B universe always_long     0.400 0.500  0.000        -0.339  -2.669  -0.369        -0.186        -1.370
+   B universe     hist_gb     0.600 0.556  0.027        -0.100  -0.537  -0.250        -0.186        -1.370
+   B universe    logistic     0.613 0.552  0.035        -0.169  -1.067  -0.250        -0.186        -1.370
+[train] saved /tmp/pytest-of-root/pytest-12/cli0/outputs/training_summary_CLI.csv
+
+##########################################################################################
+# 3/3  DONE
+##########################################################################################
+session id: CLI
+champions (best ML model by backtest Sharpe per target) are tagged stage=champion in the tracker
+next: python scripts/paper_trade_daily.py --simulate   (replay the hold-out period)
+[data] loaded from cache /tmp/pytest-of-root/pytest-12/cli0/data/synthetic_7644adeee194
+[paper] session CLI: 12 strategies (9 models + benchmarks)
+[tracking] backend=local experiment=trading-paper
+[paper] SIMULATION: replaying hold-out 2021-06-08..2021-06-28 (15 days)
+
+##########################################################################################
+# PAPER TRADING  session=CLI
+##########################################################################################
+[paper] 2021-06-08  best so far: A|SYN00|always_long          +0.00%  orders: {'BUY': 5, 'HOLD': 4, 'REBALANCE': 3}
+[paper] 2021-06-09  best so far: A|SYN01|always_long          +2.58%  orders: {'HOLD': 12}
+[paper] 2021-06-10  best so far: A|SYN01|always_long          +2.46%  orders: {'HOLD': 12}
+[paper] 2021-06-11  best so far: A|SYN01|always_long          +2.46%  orders: {'HOLD': 12}
+[paper] 2021-06-14  best so far: A|SYN00|hist_gb              +0.00%  orders: {'HOLD': 11, 'BUY': 1}
+[paper] 2021-06-15  best so far: A|SYN00|hist_gb              +0.53%  orders: {'HOLD': 9, 'REBALANCE': 3}
+[paper] 2021-06-16  best so far: A|SYN00|hist_gb              +0.12%  orders: {'HOLD': 11, 'SELL': 1}
+[paper] 2021-06-17  best so far: A|SYN00|hist_gb              +0.11%  orders: {'HOLD': 12}
+[paper] 2021-06-18  best so far: A|SYN00|hist_gb              +0.11%  orders: {'HOLD': 11, 'BUY': 1}
+[paper] 2021-06-21  best so far: A|SYN00|hist_gb              +1.20%  orders: {'HOLD': 11, 'SELL': 1}
+[paper] 2021-06-22  best so far: A|SYN00|hist_gb              +1.40%  orders: {'HOLD': 8, 'REBALANCE': 3, 'BUY': 1}
+[paper] 2021-06-23  best so far: A|SYN00|hist_gb              +3.45%  orders: {'HOLD': 11, 'SELL': 1}
+[paper] 2021-06-24  best so far: A|SYN00|hist_gb              +3.33%  orders: {'HOLD': 12}
+[paper] 2021-06-25  best so far: A|SYN00|hist_gb              +3.33%  orders: {'HOLD': 12}
+[paper] 2021-06-28  best so far: A|SYN00|hist_gb              +3.33%  orders: {'HOLD': 12}
+
+[paper] decisions taken at the close of 2021-06-28 (fill at next open):
+               strategy    equity  total_return  score action_for_tomorrow target_weights
+    A|SYN00|always_long  96672.24       -0.0333 1.0000                HOLD               
+        A|SYN00|hist_gb 103327.86        0.0333 0.3185                HOLD               
+       A|SYN00|logistic 100000.00        0.0000 0.3734                HOLD               
+    A|SYN01|always_long 100445.98        0.0045 1.0000                HOLD               
+        A|SYN01|hist_gb 100000.00        0.0000 0.5218                HOLD               
+       A|SYN01|logistic 100000.00        0.0000 0.4106                HOLD               
+ B|universe|always_long  98549.55       -0.0145    NaN                HOLD               
+     B|universe|hist_gb 100936.20        0.0094    NaN                HOLD               
+    B|universe|logistic  99335.45       -0.0066    NaN                HOLD               
+   A|SYN00|buy_and_hold  96672.24       -0.0333    NaN                HOLD               
+   A|SYN01|buy_and_hold 100445.98        0.0045    NaN                HOLD               
+B|universe|equal_weight 100460.50        0.0046    NaN                HOLD               
+
+[paper] LEADERBOARD
+               strategy line   target        model  days      equity  total_return  sharpe  max_drawdown  n_trades    costs
+        A|SYN00|hist_gb    A    SYN00      hist_gb    15 103327.8614        0.0333  5.8264       -0.0041         6 606.3485
+       A|SYN00|logistic    A    SYN00     logistic    15 100000.0000        0.0000  0.0000        0.0000         0   0.0000
+    A|SYN00|always_long    A    SYN00  always_long    15  96672.2403       -0.0333 -2.7089       -0.0543         1  99.9001
+   A|SYN00|buy_and_hold    A    SYN00 buy_and_hold    15  96672.2403       -0.0333 -2.7089       -0.0543         1  99.9001
+    A|SYN01|always_long    A    SYN01  always_long    15 100445.9757        0.0045  0.3925       -0.0600         1  99.9001
+   A|SYN01|buy_and_hold    A    SYN01 buy_and_hold    15 100445.9757        0.0045  0.3925       -0.0600         1  99.9001
+        A|SYN01|hist_gb    A    SYN01      hist_gb    15 100000.0000        0.0000  0.0000        0.0000         0   0.0000
+       A|SYN01|logistic    A    SYN01     logistic    15 100000.0000        0.0000  0.0000        0.0000         0   0.0000
+     B|universe|hist_gb    B universe      hist_gb    15 100936.1993        0.0094  0.7611       -0.0450         8 296.1005
+B|universe|equal_weight    B universe equal_weight    15 100460.5005        0.0046  0.6074       -0.0255         5  99.9001
+    B|universe|logistic    B universe     logistic    15  99335.4539       -0.0066 -0.4532       -0.0453         8 292.3656
+ B|universe|always_long    B universe  always_long    15  98549.5506       -0.0145 -1.1634       -0.0505         6 101.4119
+[paper] plot: /tmp/pytest-of-root/pytest-12/cli0/outputs/paper_equity.png
+
+##########################################################################################
+# BACKTEST LEADERBOARD  session=CLI  (out-of-sample, after costs)
+##########################################################################################
+line   target       model     stage beats_bench  accuracy   auc     ic  bt_return  bt_sharpe  bt_max_dd  bench_return  excess_return
+   A    SYN00    logistic  champion        True     0.603 0.371 -0.169     -0.102     -2.796     -0.107        -0.397          0.295
+   A    SYN00 always_long candidate       False     0.365 0.500  0.000     -0.397     -3.384     -0.417        -0.397          0.000
+   A    SYN00     hist_gb candidate       False     0.484 0.362 -0.156     -0.243     -3.886     -0.244        -0.397          0.154
+   A    SYN01 always_long candidate       False     0.452 0.500  0.000     -0.284     -1.612     -0.343        -0.284          0.000
+   A    SYN01     hist_gb  champion       False     0.508 0.509  0.038     -0.298     -1.854     -0.343        -0.284         -0.013
+   A    SYN01    logistic candidate       False     0.492 0.475 -0.020     -0.309     -2.114     -0.381        -0.284         -0.024
+   B universe     hist_gb  champion        True     0.600 0.556  0.027     -0.100     -0.537     -0.250        -0.186          0.086
+   B universe    logistic candidate        True     0.613 0.552  0.035     -0.169     -1.067     -0.250        -0.186          0.016
+   B universe always_long candidate       False     0.400 0.500  0.000     -0.339     -2.669     -0.369        -0.186         -0.154
+
+##########################################################################################
+# PAPER-TRADING LEADERBOARD
+##########################################################################################
+               strategy line   target        model  days      equity  total_return  sharpe  max_drawdown  n_trades    costs
+        A|SYN00|hist_gb    A    SYN00      hist_gb    15 103327.8614        0.0333  5.8264       -0.0041         6 606.3485
+       A|SYN00|logistic    A    SYN00     logistic    15 100000.0000        0.0000  0.0000        0.0000         0   0.0000
+    A|SYN00|always_long    A    SYN00  always_long    15  96672.2403       -0.0333 -2.7089       -0.0543         1  99.9001
+   A|SYN00|buy_and_hold    A    SYN00 buy_and_hold    15  96672.2403       -0.0333 -2.7089       -0.0543         1  99.9001
+    A|SYN01|always_long    A    SYN01  always_long    15 100445.9757        0.0045  0.3925       -0.0600         1  99.9001
+   A|SYN01|buy_and_hold    A    SYN01 buy_and_hold    15 100445.9757        0.0045  0.3925       -0.0600         1  99.9001
+        A|SYN01|hist_gb    A    SYN01      hist_gb    15 100000.0000        0.0000  0.0000        0.0000         0   0.0000
+       A|SYN01|logistic    A    SYN01     logistic    15 100000.0000        0.0000  0.0000        0.0000         0   0.0000
+     B|universe|hist_gb    B universe      hist_gb    15 100936.1993        0.0094  0.7611       -0.0450         8 296.1005
+B|universe|equal_weight    B universe equal_weight    15 100460.5005        0.0046  0.6074       -0.0255         5  99.9001
+    B|universe|logistic    B universe     logistic    15  99335.4539       -0.0066 -0.4532       -0.0453         8 292.3656
+ B|universe|always_long    B universe  always_long    15  98549.5506       -0.0145 -1.1634       -0.0505         6 101.4119
+
+##########################################################################################
+# PAPER vs BACKTEST  (a large drop from backtest to paper = overfitting warning)
+##########################################################################################
+               strategy  days  paper_return  paper_sharpe  bt_return  bt_sharpe
+        A|SYN00|hist_gb    15         0.033         5.826     -0.243     -3.886
+       A|SYN00|logistic    15         0.000         0.000     -0.102     -2.796
+    A|SYN00|always_long    15        -0.033        -2.709     -0.397     -3.384
+   A|SYN00|buy_and_hold    15        -0.033        -2.709        NaN        NaN
+    A|SYN01|always_long    15         0.004         0.393     -0.284     -1.612
+   A|SYN01|buy_and_hold    15         0.004         0.393        NaN        NaN
+        A|SYN01|hist_gb    15         0.000         0.000     -0.298     -1.854
+       A|SYN01|logistic    15         0.000         0.000     -0.309     -2.114
+     B|universe|hist_gb    15         0.009         0.761     -0.100     -0.537
+B|universe|equal_weight    15         0.005         0.607        NaN        NaN
+    B|universe|logistic    15        -0.007        -0.453     -0.169     -1.067
+ B|universe|always_long    15        -0.015        -1.163     -0.339     -2.669
+
+plot: /tmp/pytest-of-root/pytest-12/cli0/outputs/paper_equity.png
+
+  outputs: ['backtest_leaderboard_CLI.csv', 'paper_equity.png', 'paper_leaderboard.csv', 'training_summary_CLI.csv']
+  ledgers: ['A__SYN00__always_long.json', 'A__SYN00__buy_and_hold.json', 'A__SYN00__hist_gb.json', 'A__SYN00__logistic.json', 'A__SYN01__always_long.json', 'A__SYN01__buy_and_hold.json', 'A__SYN01__hist_gb.json', 'A__SYN01__logistic.json', 'B__universe__always_long.json', 'B__universe__equal_weight.json', 'B__universe__hist_gb.json', 'B__universe__logistic.json', 'daily_report.csv']
+PASSED
+tests/test_09_cli_end_to_end.py::test_cli_daily_rerun_is_noop   ledger unchanged, message 'nothing new to process' printed -> OK
+PASSED
+tests/test_09_cli_end_to_end.py::test_cli_fresh_live_start 
+==============================================================================
+  CLI: fresh live start - decide on the latest day only, first fills at the next open
+==============================================================================
+[data] loaded from cache /tmp/pytest-of-root/pytest-12/cli0/data/synthetic_7644adeee194
+[paper] session CLI: 12 strategies (9 models + benchmarks)
+[tracking] backend=local experiment=trading-paper
+[paper] new ledgers: first decisions on 2021-06-28, orders fill at the next open
+
+##########################################################################################
+# PAPER TRADING  session=CLI
+##########################################################################################
+[paper] 2021-06-28  best so far: A|SYN00|always_long          +0.00%  orders: {'BUY': 5, 'HOLD': 4, 'REBALANCE': 3}
+
+[paper] decisions taken at the close of 2021-06-28 (fill at next open):
+               strategy   equity  total_return  score action_for_tomorrow                                             target_weights
+    A|SYN00|always_long 100000.0           0.0 1.0000                 BUY                                                 SYN00:1.00
+        A|SYN00|hist_gb 100000.0           0.0 0.3185                HOLD                                                           
+       A|SYN00|logistic 100000.0           0.0 0.3734                HOLD                                                           
+    A|SYN01|always_long 100000.0           0.0 1.0000                 BUY                                                 SYN01:1.00
+        A|SYN01|hist_gb 100000.0           0.0 0.5218                HOLD                                                           
+       A|SYN01|logistic 100000.0           0.0 0.4106                HOLD                                                           
+ B|universe|always_long 100000.0           0.0 1.0000           REBALANCE                                     SYN00:0.50, SYN01:0.50
+     B|universe|hist_gb 100000.0           0.0 0.4182           REBALANCE                                     SYN01:0.50, SYN03:0.50
+    B|universe|logistic 100000.0           0.0 0.4923           REBALANCE                                     SYN00:0.50, SYN04:0.50
+   A|SYN00|buy_and_hold 100000.0           0.0    NaN                 BUY                                                 SYN00:1.00
+   A|SYN01|buy_and_hold 100000.0           0.0    NaN                 BUY                                                 SYN01:1.00
+B|universe|equal_weight 100000.0           0.0    NaN                 BUY SYN00:0.20, SYN01:0.20, SYN02:0.20, SYN03:0.20, SYN04:0.20
+
+[paper] LEADERBOARD
+               strategy line   target        model  days   equity  total_return  sharpe  max_drawdown  n_trades  costs
+    A|SYN00|always_long    A    SYN00  always_long     1 100000.0           0.0     0.0           0.0         0      0
+        A|SYN00|hist_gb    A    SYN00      hist_gb     1 100000.0           0.0     0.0           0.0         0      0
+       A|SYN00|logistic    A    SYN00     logistic     1 100000.0           0.0     0.0           0.0         0      0
+   A|SYN00|buy_and_hold    A    SYN00 buy_and_hold     1 100000.0           0.0     0.0           0.0         0      0
+    A|SYN01|always_long    A    SYN01  always_long     1 100000.0           0.0     0.0           0.0         0      0
+        A|SYN01|hist_gb    A    SYN01      hist_gb     1 100000.0           0.0     0.0           0.0         0      0
+       A|SYN01|logistic    A    SYN01     logistic     1 100000.0           0.0     0.0           0.0         0      0
+   A|SYN01|buy_and_hold    A    SYN01 buy_and_hold     1 100000.0           0.0     0.0           0.0         0      0
+ B|universe|always_long    B universe  always_long     1 100000.0           0.0     0.0           0.0         0      0
+     B|universe|hist_gb    B universe      hist_gb     1 100000.0           0.0     0.0           0.0         0      0
+    B|universe|logistic    B universe     logistic     1 100000.0           0.0     0.0           0.0         0      0
+B|universe|equal_weight    B universe equal_weight     1 100000.0           0.0     0.0           0.0         0      0
+[paper] plot: /tmp/pytest-of-root/pytest-12/cli0/outputs/paper_equity.png
+      date            strategy   equity action_for_tomorrow target_weights
+2021-06-28 A|SYN00|always_long 100000.0                 BUY     SYN00:1.00
+2021-06-28     A|SYN00|hist_gb 100000.0                HOLD            NaN
+2021-06-28    A|SYN00|logistic 100000.0                HOLD            NaN
+2021-06-28 A|SYN01|always_long 100000.0                 BUY     SYN01:1.00
+2021-06-28     A|SYN01|hist_gb 100000.0                HOLD            NaN
+2021-06-28    A|SYN01|logistic 100000.0                HOLD            NaN
+PASSED
+
+=========================== short test summary info ============================
+SKIPPED [1] tests/test_04_splits_models.py:167: lightgbm not installed (runs on your machine)
+SKIPPED [1] tests/test_06_tracking.py:108: mlflow not installed (this test runs on your machine)
+======================== 71 passed, 2 skipped in 30.46s ========================

@@ -1,0 +1,81 @@
+# ---------------------------------------------------------------------------
+# Default configuration: runs fully OFFLINE on synthetic market data.
+# Copy to a new file (see configs/real_data.yaml) to use real yfinance data.
+# ---------------------------------------------------------------------------
+project:
+  seed: 42
+  output_dir: outputs            # plots, csv summaries, reports
+
+data:
+  source: synthetic              # synthetic | yfinance | csv
+  tickers: null                  # list of tickers (yfinance/csv); synthetic generates SYN00..SYNnn
+  start: "2015-01-01"
+  end: null                      # null = today
+  csv_path: null                 # long-format csv: date,ticker,open,high,low,close,volume
+  cache_dir: data/raw
+  use_cache: true
+  synthetic:
+    n_tickers: 8
+    n_days: 1500
+    start: "2019-01-01"
+    momentum_strength: 0.02      # weak predictable component (corr ~0.07 with next-day return)
+
+features:
+  return_windows: [1, 5, 10, 21, 63]
+  sma_windows: [10, 20, 50]
+  vol_windows: [5, 21, 63]
+  rsi_window: 14
+  bb_window: 20
+  atr_window: 14
+  volume_window: 21
+  relative_windows: [5, 21]      # stock return minus universe mean return
+  calendar: true
+
+labels:
+  horizon: 5                     # predict the next 5 trading days
+  line_a_kind: direction         # direction | three_class
+  line_b_kind: cs_outperform     # beat the cross-sectional median over the horizon
+  dead_zone: 0.01                # only for three_class: |fwd return| < dead_zone -> hold
+
+validation:
+  n_splits: 4
+  test_days: 126                 # ~6 months per walk-forward test block
+  min_train_days: 252            # at least ~1 year of training data
+  purge_days: null               # null = horizon (removes label overlap / leakage)
+  holdout_days: 60               # last N days never used in training -> paper-trading replay
+
+models:                          # name -> hyper-parameters (see trading_ml/models/registry.py)
+  always_long: {}
+  momentum_rule: {feature: ret_21}
+  logistic: {C: 0.1}
+  random_forest: {n_estimators: 200, max_depth: 6, min_samples_leaf: 50}
+  hist_gb: {max_iter: 200, learning_rate: 0.05, max_depth: 3}
+  lightgbm: {n_estimators: 300, learning_rate: 0.03, num_leaves: 15, min_child_samples: 50}
+
+line_a:                          # single-stock line
+  tickers: null                  # null = first 2 tickers of the universe
+  buy_threshold: 0.55
+  sell_threshold: 0.45
+  allow_short: false
+
+line_b:                          # set-of-stocks (cross-sectional) line
+  top_k: 3
+  bottom_k: 0                    # >0 => long/short, dollar neutral
+  rebalance_every: 5             # trading days between rebalances
+
+backtest:
+  cost_bps: 10                   # cost per unit of turnover (commission + slippage), in basis points
+  initial_capital: 100000
+
+tracking:
+  backend: auto                  # auto (mlflow if installed, else local) | mlflow | local
+  mlflow_uri: sqlite:///mlflow.db
+  artifact_dir: mlartifacts
+  local_dir: runs
+  experiment_prefix: trading
+
+paper:
+  state_dir: paper_state
+  initial_cash: 100000
+  cost_bps: 10
+  lookback_days: 400             # price history used to compute today's features

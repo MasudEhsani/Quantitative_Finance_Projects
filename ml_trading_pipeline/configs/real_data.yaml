@@ -1,0 +1,19 @@
+# ---------------------------------------------------------------------------
+# Real market data via yfinance. Only keys that differ from default.yaml are
+# needed; everything else is inherited from default.yaml.
+#   python scripts/train.py --config configs/real_data.yaml
+# ---------------------------------------------------------------------------
+data:
+  source: yfinance
+  start: "2012-01-01"
+  end: null
+  tickers: [AAPL, MSFT, NVDA, AMZN, GOOGL, META, JPM, JNJ, XOM, PG, KO, PEP, WMT, HD, UNH, V]
+
+line_a:
+  tickers: [AAPL, MSFT]
+
+validation:
+  n_splits: 6
+  test_days: 252
+  min_train_days: 756
+  holdout_days: 60

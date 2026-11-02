@@ -1,0 +1,29 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "trading-ml"
+version = "0.1.0"
+description = "ML trading research pipeline: data, features, walk-forward models, backtest, MLflow, paper trading"
+requires-python = ">=3.9"
+dependencies = [
+    "numpy>=1.23",
+    "pandas>=1.5",
+    "scikit-learn>=1.2",
+    "matplotlib>=3.6",
+    "pyyaml>=6.0",
+]
+
+[project.optional-dependencies]
+full = ["mlflow>=2.10", "lightgbm>=4.0", "yfinance>=0.2.40", "pyarrow>=12"]
+dev = ["pytest>=7"]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+# -s shows the print-outs of every test, -v lists each test, -rs explains skips
+addopts = "-v -s -rs --tb=short"
+filterwarnings = ["ignore::DeprecationWarning", "ignore::FutureWarning"]

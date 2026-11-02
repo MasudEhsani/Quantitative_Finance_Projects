@@ -1,0 +1,13 @@
+# core (enough to run every test and the offline demo)
+numpy>=1.23
+pandas>=1.5
+scikit-learn>=1.2
+matplotlib>=3.6
+pyyaml>=6.0
+pytest>=7
+
+# full pipeline (real data, MLflow UI, LightGBM, parquet cache)
+mlflow>=2.10
+lightgbm>=4.0
+yfinance>=0.2.40
+pyarrow>=12
